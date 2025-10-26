@@ -4,6 +4,13 @@ let processedVideoBlob = null;
 let ffmpeg = null;
 let isProcessing = false;
 
+// Helper function to escape HTML and prevent XSS
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
 // DOM elements
 const uploadSection = document.getElementById('uploadSection');
 const processingSection = document.getElementById('processingSection');
@@ -113,9 +120,9 @@ function processFile(file) {
     // Display video info
     const fileSize = (file.size / (1024 * 1024)).toFixed(2);
     videoInfo.innerHTML = `
-        <strong>File:</strong> ${file.name}<br>
-        <strong>Size:</strong> ${fileSize} MB<br>
-        <strong>Type:</strong> ${file.type}
+        <strong>File:</strong> ${escapeHtml(file.name)}<br>
+        <strong>Size:</strong> ${escapeHtml(fileSize)} MB<br>
+        <strong>Type:</strong> ${escapeHtml(file.type)}
     `;
     
     // Show processing section
@@ -265,7 +272,9 @@ function downloadProcessedVideo() {
     const url = URL.createObjectURL(processedVideoBlob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${currentFile.name.replace(/\.[^/.]+$/, '')}_no_watermark.mp4`;
+    // Sanitize filename to prevent XSS in download attribute
+    const sanitizedName = currentFile.name.replace(/\.[^/.]+$/, '').replace(/[<>:"/\\|?*]/g, '_');
+    a.download = `${sanitizedName}_no_watermark.mp4`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
