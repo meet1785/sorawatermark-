@@ -26,8 +26,8 @@ Simply open `index.html` in a modern web browser (Chrome, Firefox, Edge, or Safa
 
 ```bash
 # Clone the repository
-git clone https://github.com/meet1785/sorawatermark-.git
-cd sorawatermark-
+git clone https://github.com/meet1785/sorawatermark.git
+cd sorawatermark
 
 # Serve using Python
 python -m http.server 8000

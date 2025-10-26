@@ -337,7 +337,7 @@ If FFmpeg.wasm won't load:
 
 If you still have issues:
 
-1. **Search existing issues**: [GitHub Issues](https://github.com/meet1785/sorawatermark-/issues)
+1. **Search existing issues**: Check the project's GitHub Issues page
 2. **Create new issue**: Include:
    - Browser and version
    - Operating system
