@@ -163,21 +163,24 @@ async function handleUrlDownload() {
             alert('URL must use HTTPS protocol');
             return;
         }
-        if (!urlObj.hostname.endsWith('chatgpt.com')) {
+        // Exact domain match or valid subdomain of chatgpt.com to prevent spoofing
+        // Accept: sora.chatgpt.com, *.chatgpt.com, but reject: malicious-chatgpt.com
+        const hostname = urlObj.hostname.toLowerCase();
+        if (hostname !== 'chatgpt.com' && hostname !== 'sora.chatgpt.com' && !hostname.endsWith('.chatgpt.com')) {
             alert('URL must be from chatgpt.com domain');
             return;
         }
         // Prevent access to internal/private IPs (IPv4)
         // Covers: localhost, 127.0.0.0/8, 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, 169.254.0.0/16
-        const hostname = urlObj.hostname.toLowerCase();
         if (hostname === 'localhost' || 
             hostname.match(/^(127\.|10\.|192\.168\.|169\.254\.)/) ||
             hostname.match(/^172\.(1[6-9]|2[0-9]|3[0-1])\./)) {
             alert('Access to internal/private URLs is not allowed');
             return;
         }
-        // Additional check: prevent IPv6 localhost
-        if (hostname === '[::1]' || hostname === '[0:0:0:0:0:0:0:1]') {
+        // Additional check: prevent IPv6 localhost and private ranges
+        if (hostname === '[::1]' || hostname === '[0:0:0:0:0:0:0:1]' || hostname === '::1' ||
+            hostname.startsWith('[fc') || hostname.startsWith('[fd') || hostname.startsWith('[fe8')) {
             alert('Access to internal/private URLs is not allowed');
             return;
         }
@@ -274,7 +277,8 @@ function extractVideoUrl(html, videoId) {
             url = url.replace(/\\"/g, '"').replace(/\\\//g, '/');
             
             // Validate that the extracted string looks like a legitimate video URL
-            // Only accept absolute HTTPS URLs (no protocol-relative URLs to prevent protocol downgrade)
+            // Accept both HTTP and HTTPS for video CDN URLs (not protocol-relative URLs)
+            // Note: Video CDNs may use HTTP, but page access is HTTPS-only
             if (url.startsWith('https://') || url.startsWith('http://')) {
                 // Additional check: ensure it's a video file
                 if (url.match(/\.(mp4|webm|mov)(\?|$)/i)) {
