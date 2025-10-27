@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sora Watermark Remover - Remove Watermarks from Sora AI Videos</title>
+    <meta name="description" content="Free online tool to remove watermarks from Sora AI generated videos. Fast, easy, and completely free.">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎬 Sora Watermark Remover</h1>
+            <p class="subtitle">Remove watermarks from Sora AI generated videos instantly</p>
+        </header>
+
+        <main>
+            <!-- Upload Section -->
+            <section id="uploadSection" class="section">
+                <div class="upload-area" id="dropZone">
+                    <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="17 8 12 3 7 8"></polyline>
+                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
+                    <h3>Drop your Sora video here</h3>
+                    <p>or click to browse</p>
+                    <input type="file" id="fileInput" accept="video/mp4,video/webm,video/quicktime" hidden>
+                    <button class="btn btn-primary" id="browseBtn">Choose Video File</button>
+                    <p class="file-info">Supports MP4, WebM, MOV (Max 500MB)</p>
+                </div>
+            </section>
+
+            <!-- Processing Section -->
+            <section id="processingSection" class="section hidden">
+                <div class="processing-card">
+                    <h2>Processing Your Video</h2>
+                    <div class="video-info" id="videoInfo"></div>
+                    
+                    <div class="progress-container">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressFill"></div>
+                        </div>
+                        <div class="progress-text">
+                            <span id="progressPercent">0%</span>
+                            <span id="progressStatus">Initializing...</span>
+                        </div>
+                    </div>
+
+                    <div class="processing-steps">
+                        <div class="step" id="step1">
+                            <span class="step-icon">⏳</span>
+                            <span class="step-text">Loading video...</span>
+                        </div>
+                        <div class="step" id="step2">
+                            <span class="step-icon">⏳</span>
+                            <span class="step-text">Analyzing watermark...</span>
+                        </div>
+                        <div class="step" id="step3">
+                            <span class="step-icon">⏳</span>
+                            <span class="step-text">Removing watermark...</span>
+                        </div>
+                        <div class="step" id="step4">
+                            <span class="step-icon">⏳</span>
+                            <span class="step-text">Finalizing video...</span>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-secondary" id="cancelBtn">Cancel</button>
+                </div>
+            </section>
+
+            <!-- Preview Section -->
+            <section id="previewSection" class="section hidden">
+                <div class="preview-card">
+                    <h2>✅ Video Processed Successfully!</h2>
+                    
+                    <div class="preview-container">
+                        <div class="preview-box">
+                            <h3>Original Video</h3>
+                            <video id="originalVideo" controls></video>
+                            <p class="preview-label">With watermark</p>
+                        </div>
+                        
+                        <div class="preview-arrow">→</div>
+                        
+                        <div class="preview-box">
+                            <h3>Cleaned Video</h3>
+                            <video id="processedVideo" controls></video>
+                            <p class="preview-label">Watermark removed</p>
+                        </div>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button class="btn btn-primary btn-large" id="downloadBtn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="7 10 12 15 17 10"></polyline>
+                                <line x1="12" y1="15" x2="12" y2="3"></line>
+                            </svg>
+                            Download Cleaned Video
+                        </button>
+                        <button class="btn btn-secondary" id="newVideoBtn">Process Another Video</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Features Section -->
+            <section class="features">
+                <h2>Why Choose Our Tool?</h2>
+                <div class="feature-grid">
+                    <div class="feature">
+                        <div class="feature-icon">🚀</div>
+                        <h3>Fast Processing</h3>
+                        <p>Process videos in seconds with advanced algorithms</p>
+                    </div>
+                    <div class="feature">
+                        <div class="feature-icon">🔒</div>
+                        <h3>100% Privacy</h3>
+                        <p>All processing happens in your browser - no uploads to servers</p>
+                    </div>
+                    <div class="feature">
+                        <div class="feature-icon">💎</div>
+                        <h3>High Quality</h3>
+                        <p>Maintains original video quality while removing watermarks</p>
+                    </div>
+                    <div class="feature">
+                        <div class="feature-icon">💰</div>
+                        <h3>Completely Free</h3>
+                        <p>No hidden fees, no subscriptions, no limitations</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- FAQ Section -->
+            <section class="faq">
+                <h2>Frequently Asked Questions</h2>
+                <div class="faq-grid">
+                    <div class="faq-item">
+                        <h3>How does it work?</h3>
+                        <p>Our tool uses advanced video processing algorithms to detect and remove the Sora AI watermark from videos while preserving the original quality.</p>
+                    </div>
+                    <div class="faq-item">
+                        <h3>Is it really free?</h3>
+                        <p>Yes! This tool is completely free to use with no hidden costs or limitations.</p>
+                    </div>
+                    <div class="faq-item">
+                        <h3>What formats are supported?</h3>
+                        <p>We support MP4, WebM, and MOV video formats. The output is always in MP4 format.</p>
+                    </div>
+                    <div class="faq-item">
+                        <h3>Is my video data safe?</h3>
+                        <p>Absolutely! All processing happens locally in your browser. Your videos never leave your device.</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>&copy; 2024 Sora Watermark Remover. All rights reserved.</p>
+            <p>This tool is for educational and personal use only.</p>
+        </footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.6/dist/umd/ffmpeg.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/util@0.12.1/dist/umd/index.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
