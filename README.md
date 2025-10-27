@@ -14,7 +14,8 @@ A powerful, free, and privacy-focused web tool for removing watermarks from Sora
 - **📱 Real-time Progress**: Live progress indicators showing processing status
 - **👁️ In-browser Preview**: Compare original and cleaned videos side-by-side
 - **⬇️ One-click Download**: Download your processed MP4 file instantly
-- **🎯 Easy to Use**: Simple drag-and-drop interface
+- **🎯 Easy to Use**: Simple drag-and-drop interface or URL input
+- **🔗 URL Support**: Attempt to download videos directly from Sora ChatGPT URLs (when possible)
 
 ## 🚀 Quick Start
 
@@ -40,9 +41,20 @@ npx http-server -p 8000
 
 ## 📖 How to Use
 
+### Option 1: Upload Local Video File
+
 1. **Upload Video**: 
    - Click "Choose Video File" or drag and drop your Sora video
    - Supports MP4, WebM, and MOV formats (max 500MB)
+
+### Option 2: Download from Sora URL (Limited)
+
+1. **Enter URL**:
+   - Paste a Sora ChatGPT video URL (e.g., `https://sora.chatgpt.com/p/s_...`)
+   - Click "Download" button
+   - **Note**: Due to CORS restrictions and authentication requirements, direct URL downloads may not work for all videos. If you encounter issues, please download the video manually from Sora and use the file upload option.
+
+### Processing and Download
 
 2. **Processing**:
    - Watch real-time progress as the tool analyzes and removes the watermark
@@ -149,6 +161,7 @@ Modify `styles.css` to customize colors and theme:
 - Processing large 4K videos may require significant memory
 - Some browser configurations may limit WASM memory usage
 - Watermark detection is optimized for standard Sora watermarks
+- **URL Download**: Direct downloads from Sora URLs may be blocked due to CORS restrictions and authentication requirements. Manual download and file upload is recommended.
 
 ## 🤝 Contributing
 

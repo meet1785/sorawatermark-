@@ -27,6 +27,8 @@ const progressStatus = document.getElementById('progressStatus');
 const videoInfo = document.getElementById('videoInfo');
 const originalVideo = document.getElementById('originalVideo');
 const processedVideo = document.getElementById('processedVideo');
+const urlInput = document.getElementById('urlInput');
+const downloadUrlBtn = document.getElementById('downloadUrlBtn');
 
 // Initialize FFmpeg
 async function loadFFmpeg() {
@@ -64,13 +66,19 @@ async function loadFFmpeg() {
 // Event listeners
 browseBtn.addEventListener('click', () => fileInput.click());
 fileInput.addEventListener('change', handleFileSelect);
-dropZone.addEventListener('click', () => fileInput.click());
+dropZone.addEventListener('click', (e) => {
+    // Only trigger file input if not clicking on URL input or button
+    if (!e.target.closest('.url-section')) {
+        fileInput.click();
+    }
+});
 dropZone.addEventListener('dragover', handleDragOver);
 dropZone.addEventListener('dragleave', handleDragLeave);
 dropZone.addEventListener('drop', handleDrop);
 cancelBtn.addEventListener('click', cancelProcessing);
 downloadBtn.addEventListener('click', downloadProcessedVideo);
 newVideoBtn.addEventListener('click', resetToUpload);
+downloadUrlBtn.addEventListener('click', handleUrlDownload);
 
 // File handling
 function handleFileSelect(e) {
@@ -131,6 +139,95 @@ function processFile(file) {
     
     // Start processing
     startProcessing();
+}
+
+async function handleUrlDownload() {
+    const url = urlInput.value.trim();
+    
+    // Validate URL
+    if (!url) {
+        alert('Please enter a Sora video URL');
+        return;
+    }
+    
+    // Validate URL format
+    if (!url.includes('sora.chatgpt.com/p/')) {
+        alert('Please enter a valid Sora ChatGPT video URL (e.g., https://sora.chatgpt.com/p/s_...)');
+        return;
+    }
+    
+    // Show loading state
+    downloadUrlBtn.disabled = true;
+    downloadUrlBtn.textContent = 'Downloading...';
+    
+    try {
+        // Extract video ID from URL
+        const videoId = extractVideoId(url);
+        
+        // Download the video
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error('Failed to access the video URL');
+        }
+        
+        // Parse the HTML to find the video URL
+        const html = await response.text();
+        const videoUrl = extractVideoUrl(html, videoId);
+        
+        if (!videoUrl) {
+            throw new Error('Could not find video in the page. The video may require authentication or may not be publicly accessible.');
+        }
+        
+        // Download the video file
+        const videoResponse = await fetch(videoUrl);
+        if (!videoResponse.ok) {
+            throw new Error('Failed to download the video');
+        }
+        
+        const videoBlob = await videoResponse.blob();
+        
+        // Create a file from the blob
+        const fileName = `sora_video_${videoId}.mp4`;
+        const file = new File([videoBlob], fileName, { type: 'video/mp4' });
+        
+        // Process the downloaded file
+        processFile(file);
+        
+    } catch (error) {
+        console.error('Error downloading video:', error);
+        alert(`Error: ${error.message}\n\nNote: Due to CORS restrictions and authentication requirements, you may need to:\n1. Download the video manually from the Sora website\n2. Upload it using the file upload option above`);
+        
+        // Reset button
+        downloadUrlBtn.disabled = false;
+        downloadUrlBtn.textContent = 'Download';
+    }
+}
+
+function extractVideoId(url) {
+    // Extract video ID from URL like https://sora.chatgpt.com/p/s_68fef349270c8191a65bcd3f69138603
+    const match = url.match(/\/p\/(s_[a-f0-9]+)/);
+    return match ? match[1] : 'video';
+}
+
+function extractVideoUrl(html, videoId) {
+    // Try to find video URL in the HTML
+    // This is a simplified approach - in reality, the video URL might be loaded via JavaScript
+    // Common patterns for video URLs:
+    const patterns = [
+        /<video[^>]+src="([^"]+)"/i,
+        /<source[^>]+src="([^"]+)"/i,
+        /"videoUrl":"([^"]+)"/i,
+        /"url":"([^"]+\.mp4[^"]*)"/i
+    ];
+    
+    for (const pattern of patterns) {
+        const match = html.match(pattern);
+        if (match && match[1]) {
+            return match[1].replace(/\\"/g, '"').replace(/\\\//g, '/');
+        }
+    }
+    
+    return null;
 }
 
 async function startProcessing() {
@@ -295,6 +392,11 @@ function resetToUpload() {
     currentFile = null;
     processedVideoBlob = null;
     fileInput.value = '';
+    urlInput.value = '';
+    
+    // Reset download button state
+    downloadUrlBtn.disabled = false;
+    downloadUrlBtn.textContent = 'Download';
     
     // Reset progress
     progressFill.style.width = '0%';
