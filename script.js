@@ -156,6 +156,27 @@ async function handleUrlDownload() {
         return;
     }
     
+    // Additional security: Validate URL is HTTPS and from expected domain
+    try {
+        const urlObj = new URL(url);
+        if (urlObj.protocol !== 'https:') {
+            alert('URL must use HTTPS protocol');
+            return;
+        }
+        if (!urlObj.hostname.endsWith('chatgpt.com')) {
+            alert('URL must be from chatgpt.com domain');
+            return;
+        }
+        // Prevent access to internal/private IPs
+        if (urlObj.hostname.match(/^(localhost|127\.|10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.|192\.168\.)/)) {
+            alert('Access to internal/private URLs is not allowed');
+            return;
+        }
+    } catch (e) {
+        alert('Invalid URL format');
+        return;
+    }
+    
     // Show loading state
     downloadUrlBtn.disabled = true;
     downloadUrlBtn.textContent = 'Downloading...';
@@ -176,6 +197,16 @@ async function handleUrlDownload() {
         
         if (!videoUrl) {
             throw new Error('Could not find video in the page. The video may require authentication or may not be publicly accessible.');
+        }
+        
+        // Validate the extracted video URL
+        try {
+            const videoUrlObj = new URL(videoUrl, url);
+            if (videoUrlObj.protocol !== 'https:' && videoUrlObj.protocol !== 'http:') {
+                throw new Error('Invalid video URL protocol');
+            }
+        } catch (e) {
+            throw new Error('Extracted video URL is invalid');
         }
         
         // Download the video file
@@ -205,25 +236,40 @@ async function handleUrlDownload() {
 
 function extractVideoId(url) {
     // Extract video ID from URL like https://sora.chatgpt.com/p/s_68fef349270c8191a65bcd3f69138603
-    const match = url.match(/\/p\/(s_[a-f0-9]+)/);
+    // More flexible pattern to handle various video ID formats
+    const match = url.match(/\/p\/(s_[a-zA-Z0-9_-]+)/);
     return match ? match[1] : 'video';
 }
 
 function extractVideoUrl(html, videoId) {
     // Try to find video URL in the HTML
     // This is a simplified approach - in reality, the video URL might be loaded via JavaScript
-    // Common patterns for video URLs:
+    // Using more specific patterns to match legitimate video URLs
     const patterns = [
-        /<video[^>]+src="([^"]+)"/i,
-        /<source[^>]+src="([^"]+)"/i,
-        /"videoUrl":"([^"]+)"/i,
-        /"url":"([^"]+\.mp4[^"]*)"/i
+        // Match video tag src attribute
+        /<video[^>]+src=["']([^"']+\.mp4[^"']*)["']/i,
+        // Match source tag src attribute
+        /<source[^>]+src=["']([^"']+\.mp4[^"']*)["']/i,
+        // Match JSON encoded video URLs (common in SPAs)
+        /"videoUrl"\s*:\s*"([^"]+\.mp4[^"]*)"/i,
+        // Match generic URL field in JSON
+        /"url"\s*:\s*"(https?:\/\/[^"]*\.mp4[^"]*)"/i
     ];
     
     for (const pattern of patterns) {
         const match = html.match(pattern);
         if (match && match[1]) {
-            return match[1].replace(/\\"/g, '"').replace(/\\\//g, '/');
+            let url = match[1];
+            // Sanitize: unescape JSON encoding
+            url = url.replace(/\\"/g, '"').replace(/\\\//g, '/');
+            
+            // Validate that the extracted string looks like a legitimate video URL
+            if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('//')) {
+                // Additional check: ensure it's a video file
+                if (url.match(/\.(mp4|webm|mov)(\?|$)/i)) {
+                    return url;
+                }
+            }
         }
     }
     

@@ -481,6 +481,15 @@ footer p {
         width: 100%;
         justify-content: center;
     }
+
+    .url-input-group {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .url-input-group .btn {
+        width: 100%;
+    }
 }
 
 /* Animations */
