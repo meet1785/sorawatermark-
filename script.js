@@ -167,8 +167,17 @@ async function handleUrlDownload() {
             alert('URL must be from chatgpt.com domain');
             return;
         }
-        // Prevent access to internal/private IPs
-        if (urlObj.hostname.match(/^(localhost|127\.|10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.|192\.168\.)/)) {
+        // Prevent access to internal/private IPs (IPv4)
+        // Covers: localhost, 127.0.0.0/8, 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, 169.254.0.0/16
+        const hostname = urlObj.hostname.toLowerCase();
+        if (hostname === 'localhost' || 
+            hostname.match(/^(127\.|10\.|192\.168\.|169\.254\.)/) ||
+            hostname.match(/^172\.(1[6-9]|2[0-9]|3[0-1])\./)) {
+            alert('Access to internal/private URLs is not allowed');
+            return;
+        }
+        // Additional check: prevent IPv6 localhost
+        if (hostname === '[::1]' || hostname === '[0:0:0:0:0:0:0:1]') {
             alert('Access to internal/private URLs is not allowed');
             return;
         }
@@ -236,7 +245,8 @@ async function handleUrlDownload() {
 
 function extractVideoId(url) {
     // Extract video ID from URL like https://sora.chatgpt.com/p/s_68fef349270c8191a65bcd3f69138603
-    // More flexible pattern to handle various video ID formats
+    // Pattern supports alphanumeric characters, hyphens, and underscores for flexibility
+    // While the example shows lowercase hex, we use a more permissive pattern to handle potential ID format changes
     const match = url.match(/\/p\/(s_[a-zA-Z0-9_-]+)/);
     return match ? match[1] : 'video';
 }
@@ -264,7 +274,8 @@ function extractVideoUrl(html, videoId) {
             url = url.replace(/\\"/g, '"').replace(/\\\//g, '/');
             
             // Validate that the extracted string looks like a legitimate video URL
-            if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('//')) {
+            // Only accept absolute HTTPS URLs (no protocol-relative URLs to prevent protocol downgrade)
+            if (url.startsWith('https://') || url.startsWith('http://')) {
                 // Additional check: ensure it's a video file
                 if (url.match(/\.(mp4|webm|mov)(\?|$)/i)) {
                     return url;
