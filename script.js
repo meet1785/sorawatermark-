@@ -197,18 +197,19 @@ async function handleUrlDownload() {
         // Extract video ID from URL
         const videoId = extractVideoId(url);
         
-        // Download the video
+        // Try direct download (will likely fail due to CORS, but worth trying)
+        console.log('Attempting to download video...');
+        
         const response = await fetch(url);
         if (!response.ok) {
             throw new Error('Failed to access the video URL');
         }
         
-        // Parse the HTML to find the video URL
         const html = await response.text();
         const videoUrl = extractVideoUrl(html, videoId);
         
         if (!videoUrl) {
-            throw new Error('Could not find video in the page. The video may require authentication or may not be publicly accessible.');
+            throw new Error('Could not find video URL in page');
         }
         
         // Validate the extracted video URL
@@ -221,10 +222,10 @@ async function handleUrlDownload() {
             throw new Error('Extracted video URL is invalid');
         }
         
-        // Download the video file
+        // Try to download the video
         const videoResponse = await fetch(videoUrl);
         if (!videoResponse.ok) {
-            throw new Error('Failed to download the video');
+            throw new Error('Failed to download video');
         }
         
         const videoBlob = await videoResponse.blob();
@@ -234,15 +235,75 @@ async function handleUrlDownload() {
         const file = new File([videoBlob], fileName, { type: 'video/mp4' });
         
         // Process the downloaded file
+        console.log('Successfully downloaded video');
         processFile(file);
         
     } catch (error) {
         console.error('Error downloading video:', error);
-        alert(`Error: ${error.message}\n\nNote: Due to CORS restrictions and authentication requirements, you may need to:\n1. Download the video manually from the Sora website\n2. Upload it using the file upload option above`);
+        
+        // Show detailed manual download instructions
+        const videoId = extractVideoId(url);
+        showManualDownloadInstructions(url, videoId);
         
         // Reset button
         downloadUrlBtn.disabled = false;
         downloadUrlBtn.textContent = 'Download';
+    }
+}
+
+// Show manual download instructions with copy-paste helper
+function showManualDownloadInstructions(url, videoId) {
+    const instructions = `
+⚠️ Automatic Download Failed - Use Manual Method
+
+Due to browser security (CORS) restrictions, automatic download is blocked.
+Please follow ONE of these methods:
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+METHOD 1: Browser DevTools (Recommended)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Click OK to open the video page in a new tab
+2. Press F12 (or Right-click → Inspect)
+3. Click the "Network" tab
+4. Refresh the page (F5)
+5. Filter by "media" or "mp4"
+6. Find the largest file (video file)
+7. Right-click → "Open in new tab"
+8. Right-click video → "Save video as..."
+9. Come back here and upload the downloaded file
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+METHOD 2: Browser Extension
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Install "Video DownloadHelper" extension:
+• Chrome: chrome.google.com/webstore
+• Firefox: addons.mozilla.org
+
+Then visit the Sora page and click the extension icon.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+METHOD 3: Right-Click Video
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Click OK to open the video page
+2. Let the video load completely
+3. Right-click on the video player
+4. Select "Save video as..." or "Download video"
+5. Come back here and upload the file
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+💡 TIP: Websites like savesora.com use backend servers to bypass CORS.
+This tool is 100% client-side for your privacy, which limits some features.
+
+Click OK to open the Sora page, or Cancel to stay here.
+    `.trim();
+    
+    // Create a modal with instructions
+    if (confirm(instructions)) {
+        window.open(url, '_blank');
     }
 }
 

@@ -47,12 +47,25 @@ npx http-server -p 8000
    - Click "Choose Video File" or drag and drop your Sora video
    - Supports MP4, WebM, and MOV formats (max 500MB)
 
-### Option 2: Download from Sora URL (Limited)
+### Option 2: Download from Sora URL
 
 1. **Enter URL**:
    - Paste a Sora ChatGPT video URL (e.g., `https://sora.chatgpt.com/p/s_...`)
    - Click "Download" button
-   - **Note**: Due to CORS restrictions and authentication requirements, direct URL downloads may not work for all videos. If you encounter issues, please download the video manually from Sora and use the file upload option.
+   
+2. **Automatic vs Manual Download**:
+   - The tool will attempt automatic download (rarely succeeds due to CORS)
+   - If automatic download fails, detailed manual instructions will appear
+   - Follow the step-by-step guide to download using:
+     - Browser DevTools (Network tab) - Recommended
+     - Browser extension (Video DownloadHelper)
+     - Right-click on video player
+   
+3. **Why Manual Download?**:
+   - **CORS Security**: Browser security prevents client-side JavaScript from accessing cross-origin resources
+   - **Privacy First**: This tool is 100% client-side for your privacy (no backend server)
+   - **Comparison**: Sites like savesora.com use backend servers to bypass CORS restrictions
+   - **Solution**: The manual method is simple and works reliably
 
 ### Processing and Download
 
