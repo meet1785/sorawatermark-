@@ -27,6 +27,8 @@ const progressStatus = document.getElementById('progressStatus');
 const videoInfo = document.getElementById('videoInfo');
 const originalVideo = document.getElementById('originalVideo');
 const processedVideo = document.getElementById('processedVideo');
+const urlInput = document.getElementById('urlInput');
+const downloadUrlBtn = document.getElementById('downloadUrlBtn');
 
 // Initialize FFmpeg
 async function loadFFmpeg() {
@@ -64,13 +66,19 @@ async function loadFFmpeg() {
 // Event listeners
 browseBtn.addEventListener('click', () => fileInput.click());
 fileInput.addEventListener('change', handleFileSelect);
-dropZone.addEventListener('click', () => fileInput.click());
+dropZone.addEventListener('click', (e) => {
+    // Only trigger file input if not clicking on URL input or button
+    if (!e.target.closest('.url-section')) {
+        fileInput.click();
+    }
+});
 dropZone.addEventListener('dragover', handleDragOver);
 dropZone.addEventListener('dragleave', handleDragLeave);
 dropZone.addEventListener('drop', handleDrop);
 cancelBtn.addEventListener('click', cancelProcessing);
 downloadBtn.addEventListener('click', downloadProcessedVideo);
 newVideoBtn.addEventListener('click', resetToUpload);
+downloadUrlBtn.addEventListener('click', handleUrlDownload);
 
 // File handling
 function handleFileSelect(e) {
@@ -131,6 +139,217 @@ function processFile(file) {
     
     // Start processing
     startProcessing();
+}
+
+async function handleUrlDownload() {
+    const url = urlInput.value.trim();
+    
+    // Validate URL
+    if (!url) {
+        alert('Please enter a Sora video URL');
+        return;
+    }
+    
+    // Validate URL format
+    if (!url.includes('sora.chatgpt.com/p/')) {
+        alert('Please enter a valid Sora ChatGPT video URL (e.g., https://sora.chatgpt.com/p/s_...)');
+        return;
+    }
+    
+    // Additional security: Validate URL is HTTPS and from expected domain
+    try {
+        const urlObj = new URL(url);
+        if (urlObj.protocol !== 'https:') {
+            alert('URL must use HTTPS protocol');
+            return;
+        }
+        // Exact domain match or valid subdomain of chatgpt.com to prevent spoofing
+        // Accept: sora.chatgpt.com, *.chatgpt.com, but reject: malicious-chatgpt.com
+        const hostname = urlObj.hostname.toLowerCase();
+        if (hostname !== 'chatgpt.com' && hostname !== 'sora.chatgpt.com' && !hostname.endsWith('.chatgpt.com')) {
+            alert('URL must be from chatgpt.com domain');
+            return;
+        }
+        // Prevent access to internal/private IPs (IPv4)
+        // Covers: localhost, 127.0.0.0/8, 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, 169.254.0.0/16
+        if (hostname === 'localhost' || 
+            hostname.match(/^(127\.|10\.|192\.168\.|169\.254\.)/) ||
+            hostname.match(/^172\.(1[6-9]|2[0-9]|3[0-1])\./)) {
+            alert('Access to internal/private URLs is not allowed');
+            return;
+        }
+        // Additional check: prevent IPv6 localhost and private ranges
+        if (hostname === '[::1]' || hostname === '[0:0:0:0:0:0:0:1]' || hostname === '::1' ||
+            hostname.startsWith('[fc') || hostname.startsWith('[fd') || hostname.startsWith('[fe8')) {
+            alert('Access to internal/private URLs is not allowed');
+            return;
+        }
+    } catch (e) {
+        alert('Invalid URL format');
+        return;
+    }
+    
+    // Show loading state
+    downloadUrlBtn.disabled = true;
+    downloadUrlBtn.textContent = 'Downloading...';
+    
+    try {
+        // Extract video ID from URL
+        const videoId = extractVideoId(url);
+        
+        // Try direct download (will likely fail due to CORS, but worth trying)
+        console.log('Attempting to download video...');
+        
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error('Failed to access the video URL');
+        }
+        
+        const html = await response.text();
+        const videoUrl = extractVideoUrl(html, videoId);
+        
+        if (!videoUrl) {
+            throw new Error('Could not find video URL in page');
+        }
+        
+        // Validate the extracted video URL
+        try {
+            const videoUrlObj = new URL(videoUrl, url);
+            if (videoUrlObj.protocol !== 'https:' && videoUrlObj.protocol !== 'http:') {
+                throw new Error('Invalid video URL protocol');
+            }
+        } catch (e) {
+            throw new Error('Extracted video URL is invalid');
+        }
+        
+        // Try to download the video
+        const videoResponse = await fetch(videoUrl);
+        if (!videoResponse.ok) {
+            throw new Error('Failed to download video');
+        }
+        
+        const videoBlob = await videoResponse.blob();
+        
+        // Create a file from the blob
+        const fileName = `sora_video_${videoId}.mp4`;
+        const file = new File([videoBlob], fileName, { type: 'video/mp4' });
+        
+        // Process the downloaded file
+        console.log('Successfully downloaded video');
+        processFile(file);
+        
+    } catch (error) {
+        console.error('Error downloading video:', error);
+        
+        // Show detailed manual download instructions
+        const videoId = extractVideoId(url);
+        showManualDownloadInstructions(url, videoId);
+        
+        // Reset button
+        downloadUrlBtn.disabled = false;
+        downloadUrlBtn.textContent = 'Download';
+    }
+}
+
+// Show manual download instructions with copy-paste helper
+function showManualDownloadInstructions(url, videoId) {
+    const instructions = `
+⚠️ Automatic Download Failed - Use Manual Method
+
+Due to browser security (CORS) restrictions, automatic download is blocked.
+Please follow ONE of these methods:
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+METHOD 1: Browser DevTools (Recommended)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Click OK to open the video page in a new tab
+2. Press F12 (or Right-click → Inspect)
+3. Click the "Network" tab
+4. Refresh the page (F5)
+5. Filter by "media" or "mp4"
+6. Find the largest file (video file)
+7. Right-click → "Open in new tab"
+8. Right-click video → "Save video as..."
+9. Come back here and upload the downloaded file
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+METHOD 2: Browser Extension
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Install "Video DownloadHelper" extension:
+• Chrome: chrome.google.com/webstore
+• Firefox: addons.mozilla.org
+
+Then visit the Sora page and click the extension icon.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+METHOD 3: Right-Click Video
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Click OK to open the video page
+2. Let the video load completely
+3. Right-click on the video player
+4. Select "Save video as..." or "Download video"
+5. Come back here and upload the file
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+💡 TIP: Websites like savesora.com use backend servers to bypass CORS.
+This tool is 100% client-side for your privacy, which limits some features.
+
+Click OK to open the Sora page, or Cancel to stay here.
+    `.trim();
+    
+    // Create a modal with instructions
+    if (confirm(instructions)) {
+        window.open(url, '_blank');
+    }
+}
+
+function extractVideoId(url) {
+    // Extract video ID from URL like https://sora.chatgpt.com/p/s_68fef349270c8191a65bcd3f69138603
+    // Pattern supports alphanumeric characters, hyphens, and underscores for flexibility
+    // While the example shows lowercase hex, we use a more permissive pattern to handle potential ID format changes
+    const match = url.match(/\/p\/(s_[a-zA-Z0-9_-]+)/);
+    return match ? match[1] : 'video';
+}
+
+function extractVideoUrl(html, videoId) {
+    // Try to find video URL in the HTML
+    // This is a simplified approach - in reality, the video URL might be loaded via JavaScript
+    // Using more specific patterns to match legitimate video URLs
+    const patterns = [
+        // Match video tag src attribute
+        /<video[^>]+src=["']([^"']+\.mp4[^"']*)["']/i,
+        // Match source tag src attribute
+        /<source[^>]+src=["']([^"']+\.mp4[^"']*)["']/i,
+        // Match JSON encoded video URLs (common in SPAs)
+        /"videoUrl"\s*:\s*"([^"]+\.mp4[^"]*)"/i,
+        // Match generic URL field in JSON
+        /"url"\s*:\s*"(https?:\/\/[^"]*\.mp4[^"]*)"/i
+    ];
+    
+    for (const pattern of patterns) {
+        const match = html.match(pattern);
+        if (match && match[1]) {
+            let url = match[1];
+            // Sanitize: unescape JSON encoding
+            url = url.replace(/\\"/g, '"').replace(/\\\//g, '/');
+            
+            // Validate that the extracted string looks like a legitimate video URL
+            // Accept both HTTP and HTTPS for video CDN URLs (not protocol-relative URLs)
+            // Note: Video CDNs may use HTTP, but page access is HTTPS-only
+            if (url.startsWith('https://') || url.startsWith('http://')) {
+                // Additional check: ensure it's a video file
+                if (url.match(/\.(mp4|webm|mov)(\?|$)/i)) {
+                    return url;
+                }
+            }
+        }
+    }
+    
+    return null;
 }
 
 async function startProcessing() {
@@ -295,6 +514,11 @@ function resetToUpload() {
     currentFile = null;
     processedVideoBlob = null;
     fileInput.value = '';
+    urlInput.value = '';
+    
+    // Reset download button state
+    downloadUrlBtn.disabled = false;
+    downloadUrlBtn.textContent = 'Download';
     
     // Reset progress
     progressFill.style.width = '0%';

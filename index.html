@@ -28,6 +28,19 @@
                     <input type="file" id="fileInput" accept="video/mp4,video/webm,video/quicktime" hidden>
                     <button class="btn btn-primary" id="browseBtn">Choose Video File</button>
                     <p class="file-info">Supports MP4, WebM, MOV (Max 500MB)</p>
+                    
+                    <div class="url-section">
+                        <div class="divider">
+                            <span>OR</span>
+                        </div>
+                        <h3>Download from Sora URL</h3>
+                        <p>Enter a Sora ChatGPT video link</p>
+                        <div class="url-input-group">
+                            <input type="text" id="urlInput" placeholder="https://sora.chatgpt.com/p/s_..." class="url-input">
+                            <button class="btn btn-primary" id="downloadUrlBtn">Download</button>
+                        </div>
+                        <p class="file-info">Example: https://sora.chatgpt.com/p/s_68fef349270c8191a65bcd3f69138603</p>
+                    </div>
                 </div>
             </section>
 

@@ -110,6 +110,59 @@ main {
     margin-top: 1rem;
 }
 
+/* URL Section */
+.url-section {
+    margin-top: 2rem;
+    padding-top: 2rem;
+}
+
+.divider {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 2rem 0;
+}
+
+.divider::before,
+.divider::after {
+    content: '';
+    flex: 1;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.divider span {
+    padding: 0 1rem;
+    color: var(--text-secondary);
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+.url-input-group {
+    display: flex;
+    gap: 1rem;
+    max-width: 600px;
+    margin: 1rem auto;
+}
+
+.url-input {
+    flex: 1;
+    padding: 0.875rem 1rem;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.url-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.url-input::placeholder {
+    color: var(--text-secondary);
+}
+
 /* Buttons */
 .btn {
     padding: 0.875rem 2rem;
@@ -427,6 +480,15 @@ footer p {
     .action-buttons .btn {
         width: 100%;
         justify-content: center;
+    }
+
+    .url-input-group {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .url-input-group .btn {
+        width: 100%;
     }
 }
 
