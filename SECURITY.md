@@ -47,19 +47,25 @@ const sanitizedName = currentFile.name
 
 The following alerts are **false positives** and do not represent actual security vulnerabilities:
 
-#### Alert 1: Video Source Assignment (line 146)
+#### Alert 1: Video Source Assignment (configPreview - line 206)
+```javascript
+configPreview.src = videoURL;
+```
+**Why it's safe**: `videoURL` is a blob URL created by `URL.createObjectURL()`, which generates internal browser URLs like `blob:http://localhost:8080/uuid`. These cannot contain XSS payloads. Used for video preview in watermark configuration screen.
+
+#### Alert 2: Video Source Assignment (originalVideo)
 ```javascript
 originalVideo.src = videoURL;
 ```
 **Why it's safe**: `videoURL` is a blob URL created by `URL.createObjectURL()`, which generates internal browser URLs like `blob:http://localhost:8080/uuid`. These cannot contain XSS payloads.
 
-#### Alert 2: Video Source Assignment (line 176)
+#### Alert 3: Video Source Assignment (processedVideo)
 ```javascript
 processedVideo.src = processedURL;
 ```
 **Why it's safe**: Same as Alert 1 - blob URLs are safe and cannot be exploited for XSS.
 
-#### Alert 3: Anchor href Assignment (line 274)
+#### Alert 4: Anchor href Assignment
 ```javascript
 a.href = url;
 ```
@@ -184,6 +190,14 @@ If you discover a security vulnerability:
 4. Coordinate public disclosure timing
 
 ## Security Update History
+
+### Version 1.1.0 (November 6, 2024)
+- ✅ Added custom watermark position configuration feature
+- ✅ New UI with sliders and preset buttons
+- ✅ Live video preview with watermark overlay
+- ✅ All new inputs properly validated
+- ✅ No XSS vulnerabilities introduced (CodeQL false positive for blob URL)
+- ✅ Maintains backward compatibility with existing security measures
 
 ### Version 1.0.0 (October 26, 2024)
 - ✅ Initial implementation with security best practices
