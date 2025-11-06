@@ -4,14 +4,17 @@ let processedVideoBlob = null;
 let ffmpeg = null;
 let isProcessing = false;
 
-// Watermark configuration state
-let watermarkConfig = {
+// Default watermark configuration
+const DEFAULT_WATERMARK_CONFIG = {
     x: 82, // percentage from left
     y: 88, // percentage from top
     width: 200, // pixels
     height: 60, // pixels
     preset: 'bottom-right'
 };
+
+// Watermark configuration state
+let watermarkConfig = { ...DEFAULT_WATERMARK_CONFIG };
 
 // Helper function to escape HTML and prevent XSS
 function escapeHtml(text) {
@@ -470,7 +473,8 @@ function updateWatermarkOverlay() {
     const yPixels = (watermarkConfig.y / 100) * videoHeight;
     
     // Scale the watermark size to the preview (proportionally)
-    const scale = videoWidth / configPreview.videoWidth;
+    // Guard against division by zero
+    const scale = configPreview.videoWidth > 0 ? videoWidth / configPreview.videoWidth : 1;
     const scaledWidth = watermarkConfig.width * scale;
     const scaledHeight = watermarkConfig.height * scale;
     
@@ -562,30 +566,9 @@ async function removeWatermark(file) {
         // h: height of watermark area
         
         // Convert percentage to FFmpeg expression that scales with video dimensions
-        // For left side: percentage of width (e.g., 2% = iw*0.02)
-        // For right side: width minus offset minus watermark width (e.g., 82% = iw-iw*0.18-w)
-        
-        let xExpr, yExpr;
-        
-        if (watermarkConfig.x <= 50) {
-            // Left side: position from left edge as percentage of width
-            xExpr = `iw*${(watermarkConfig.x / 100).toFixed(3)}`;
-        } else {
-            // Right side: position from right edge
-            // Calculate distance from right edge as percentage, then subtract watermark width
-            const rightOffset = (100 - watermarkConfig.x) / 100;
-            xExpr = `iw-iw*${rightOffset.toFixed(3)}-${watermarkConfig.width}`;
-        }
-        
-        if (watermarkConfig.y <= 50) {
-            // Top side: position from top edge as percentage of height
-            yExpr = `ih*${(watermarkConfig.y / 100).toFixed(3)}`;
-        } else {
-            // Bottom side: position from bottom edge
-            // Calculate distance from bottom edge as percentage, then subtract watermark height
-            const bottomOffset = (100 - watermarkConfig.y) / 100;
-            yExpr = `ih-ih*${bottomOffset.toFixed(3)}-${watermarkConfig.height}`;
-        }
+        // The percentage represents where the watermark STARTS from the left/top edge
+        const xExpr = `iw*${(watermarkConfig.x / 100).toFixed(3)}`;
+        const yExpr = `ih*${(watermarkConfig.y / 100).toFixed(3)}`;
         
         // Build delogo filter string
         const delogoFilter = `delogo=x=${xExpr}:y=${yExpr}:w=${watermarkConfig.width}:h=${watermarkConfig.height}:show=0`;
@@ -695,21 +678,15 @@ function resetToUpload() {
     }
     
     // Reset watermark config to default
-    watermarkConfig = {
-        x: 82,
-        y: 88,
-        width: 200,
-        height: 60,
-        preset: 'bottom-right'
-    };
-    watermarkXSlider.value = 82;
-    watermarkYSlider.value = 88;
-    watermarkWidthSlider.value = 200;
-    watermarkHeightSlider.value = 60;
-    watermarkXValue.textContent = '82%';
-    watermarkYValue.textContent = '88%';
-    watermarkWidthValue.textContent = '200px';
-    watermarkHeightValue.textContent = '60px';
+    watermarkConfig = { ...DEFAULT_WATERMARK_CONFIG };
+    watermarkXSlider.value = DEFAULT_WATERMARK_CONFIG.x;
+    watermarkYSlider.value = DEFAULT_WATERMARK_CONFIG.y;
+    watermarkWidthSlider.value = DEFAULT_WATERMARK_CONFIG.width;
+    watermarkHeightSlider.value = DEFAULT_WATERMARK_CONFIG.height;
+    watermarkXValue.textContent = `${DEFAULT_WATERMARK_CONFIG.x}%`;
+    watermarkYValue.textContent = `${DEFAULT_WATERMARK_CONFIG.y}%`;
+    watermarkWidthValue.textContent = `${DEFAULT_WATERMARK_CONFIG.width}px`;
+    watermarkHeightValue.textContent = `${DEFAULT_WATERMARK_CONFIG.height}px`;
     
     // Reset preset buttons
     presetButtons.forEach(btn => btn.classList.remove('active'));
