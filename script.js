@@ -552,24 +552,40 @@ async function removeWatermark(file) {
         await ffmpeg.writeFile('input.mp4', await fetchFile(file));
         
         // Calculate FFmpeg filter parameters from watermark config
-        // Convert percentage-based positions to pixel-based positions
-        // x and y are calculated from the video dimensions
+        // Convert percentage-based positions to FFmpeg expressions
         // watermarkConfig.x and watermarkConfig.y are percentages (0-100)
         
         // For FFmpeg delogo filter:
-        // x: horizontal position (can use expressions like iw-210 for right side)
-        // y: vertical position (can use expressions like ih-70 for bottom)
+        // x: horizontal position (supports expressions with iw = input width)
+        // y: vertical position (supports expressions with ih = input height)
         // w: width of watermark area
         // h: height of watermark area
         
-        // Convert percentage to FFmpeg expression
-        const xExpr = watermarkConfig.x <= 50 
-            ? Math.round(watermarkConfig.x * 10) // Left side: use absolute value (0.1*iw per percent)
-            : `iw-${Math.round((100 - watermarkConfig.x) * 10) + watermarkConfig.width}`; // Right side: from right edge
+        // Convert percentage to FFmpeg expression that scales with video dimensions
+        // For left side: percentage of width (e.g., 2% = iw*0.02)
+        // For right side: width minus offset minus watermark width (e.g., 82% = iw-iw*0.18-w)
         
-        const yExpr = watermarkConfig.y <= 50
-            ? Math.round(watermarkConfig.y * 10) // Top side: use absolute value
-            : `ih-${Math.round((100 - watermarkConfig.y) * 10) + watermarkConfig.height}`; // Bottom side: from bottom edge
+        let xExpr, yExpr;
+        
+        if (watermarkConfig.x <= 50) {
+            // Left side: position from left edge as percentage of width
+            xExpr = `iw*${(watermarkConfig.x / 100).toFixed(3)}`;
+        } else {
+            // Right side: position from right edge
+            // Calculate distance from right edge as percentage, then subtract watermark width
+            const rightOffset = (100 - watermarkConfig.x) / 100;
+            xExpr = `iw-iw*${rightOffset.toFixed(3)}-${watermarkConfig.width}`;
+        }
+        
+        if (watermarkConfig.y <= 50) {
+            // Top side: position from top edge as percentage of height
+            yExpr = `ih*${(watermarkConfig.y / 100).toFixed(3)}`;
+        } else {
+            // Bottom side: position from bottom edge
+            // Calculate distance from bottom edge as percentage, then subtract watermark height
+            const bottomOffset = (100 - watermarkConfig.y) / 100;
+            yExpr = `ih-ih*${bottomOffset.toFixed(3)}-${watermarkConfig.height}`;
+        }
         
         // Build delogo filter string
         const delogoFilter = `delogo=x=${xExpr}:y=${yExpr}:w=${watermarkConfig.width}:h=${watermarkConfig.height}:show=0`;
