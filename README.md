@@ -11,8 +11,9 @@ A powerful, free, and privacy-focused web tool for removing watermarks from Sora
 - **🔒 100% Privacy**: All processing happens in your browser - videos never leave your device
 - **💎 High Quality**: Maintains original video quality while removing watermarks
 - **💰 Completely Free**: No hidden fees, subscriptions, or limitations
+- **🎯 Custom Watermark Position**: Configure watermark location and size with presets or manual controls
 - **📱 Real-time Progress**: Live progress indicators showing processing status
-- **👁️ In-browser Preview**: Compare original and cleaned videos side-by-side
+- **👁️ In-browser Preview**: Compare original and cleaned videos side-by-side with live watermark overlay
 - **⬇️ One-click Download**: Download your processed MP4 file instantly
 - **🎯 Easy to Use**: Simple drag-and-drop interface or URL input
 - **🔗 URL Support**: Attempt to download videos directly from Sora ChatGPT URLs (when possible)
@@ -69,15 +70,30 @@ npx http-server -p 8000
 
 ### Processing and Download
 
-2. **Processing**:
+2. **Configure Watermark Position**:
+   - Video preview with live watermark overlay
+   - Choose from quick presets:
+     - Bottom Right (default) - typical Sora watermark location
+     - Bottom Left
+     - Top Right
+     - Top Left
+   - Or fine-tune manually:
+     - Horizontal Position (0-100%)
+     - Vertical Position (0-100%)
+     - Width (50-400px)
+     - Height (30-200px)
+   - See the watermark area highlighted on your video in real-time
+
+3. **Processing**:
+   - Click "Start Processing" to begin
    - Watch real-time progress as the tool analyzes and removes the watermark
    - Four-step process: Load → Analyze → Remove → Finalize
 
-3. **Preview**:
+4. **Preview**:
    - Compare original and cleaned videos side-by-side
    - Verify watermark removal quality
 
-4. **Download**:
+5. **Download**:
    - Click "Download Cleaned Video" to save your watermark-free video
    - Video is saved as MP4 format
 
@@ -92,41 +108,65 @@ npx http-server -p 8000
 ### How It Works
 
 1. **Video Loading**: Loads the video file into browser memory
-2. **Watermark Detection**: Analyzes typical Sora watermark locations (bottom-right corner)
-3. **Removal Processing**: Uses FFmpeg's delogo filter to remove watermark from detected area
+2. **Watermark Configuration**: User selects watermark position and size using presets or manual controls
+3. **Removal Processing**: Uses FFmpeg's delogo filter to remove watermark from configured area
 4. **Output Generation**: Encodes the cleaned video as MP4 with H.264 codec
 
 ### FFmpeg Processing
 
-The tool uses FFmpeg.wasm with the following filter chain:
+The tool uses FFmpeg.wasm with a dynamically generated filter based on user configuration:
 
 ```bash
 ffmpeg -i input.mp4 \
-  -vf "delogo=x=iw-210:y=ih-70:w=200:h=60:show=0" \
+  -vf "delogo=x={computed}:y={computed}:w={user_width}:h={user_height}:show=0" \
   -c:v libx264 -preset ultrafast -crf 23 \
   -c:a copy \
   output.mp4
 ```
 
-This targets the typical Sora watermark position (200x60 pixels in bottom-right area).
+The position parameters are calculated from user settings:
+- **x**: Horizontal position (percentage converted to pixels or expression like `iw-210`)
+- **y**: Vertical position (percentage converted to pixels or expression like `ih-70`)
+- **w**: Width in pixels (default: 200px, adjustable: 50-400px)
+- **h**: Height in pixels (default: 60px, adjustable: 30-200px)
+
+### Watermark Configuration
+
+The watermark removal area can be customized through the UI:
+
+**Quick Presets:**
+- Bottom Right (82%, 88%) - Default, typical Sora watermark location
+- Bottom Left (2%, 88%)
+- Top Right (82%, 2%)
+- Top Left (2%, 2%)
+
+**Manual Controls:**
+- Fine-tune horizontal and vertical position with sliders (0-100%)
+- Adjust watermark width (50-400px) and height (30-200px)
+- Real-time visual feedback with overlay on video preview
 
 ## 🎨 Customization
 
 ### Adjusting Watermark Detection
 
-Edit `script.js` to modify watermark detection parameters:
+No code editing needed! Use the built-in configuration UI to adjust watermark position and size:
+
+1. Upload your video
+2. Select a preset or use sliders to position the watermark area
+3. See the highlighted area on your video preview
+4. Click "Start Processing" to remove the watermark
+
+For advanced users who want to modify default values, edit `script.js`:
 
 ```javascript
-// In removeWatermark function
-await ffmpeg.exec([
-    '-i', 'input.mp4',
-    '-vf', 'delogo=x=iw-210:y=ih-70:w=200:h=60:show=0',
-    // x=iw-210: 210 pixels from right edge
-    // y=ih-70: 70 pixels from bottom edge
-    // w=200: watermark width
-    // h=60: watermark height
-    ...
-]);
+// Default watermark configuration
+let watermarkConfig = {
+    x: 82,      // Horizontal position (%)
+    y: 88,      // Vertical position (%)
+    width: 200, // Width in pixels
+    height: 60, // Height in pixels
+    preset: 'bottom-right'
+};
 ```
 
 ### Styling
@@ -173,7 +213,7 @@ Modify `styles.css` to customize colors and theme:
 - Maximum file size: 500MB
 - Processing large 4K videos may require significant memory
 - Some browser configurations may limit WASM memory usage
-- Watermark detection is optimized for standard Sora watermarks
+- Custom watermark configuration allows flexibility for different watermark positions
 - **URL Download**: Direct downloads from Sora URLs may be blocked due to CORS restrictions and authentication requirements. Manual download and file upload is recommended.
 
 ## 🤝 Contributing
@@ -188,7 +228,7 @@ Contributions are welcome! Here's how you can help:
 
 ## 📝 Roadmap
 
-- [ ] Support for custom watermark positions
+- [x] Support for custom watermark positions - **NEW!** ✨
 - [ ] Batch processing multiple videos
 - [ ] Advanced watermark detection using AI
 - [ ] Video quality presets (fast/balanced/quality)
