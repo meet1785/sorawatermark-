@@ -4,6 +4,15 @@ let processedVideoBlob = null;
 let ffmpeg = null;
 let isProcessing = false;
 
+// Watermark configuration state
+let watermarkConfig = {
+    x: 82, // percentage from left
+    y: 88, // percentage from top
+    width: 200, // pixels
+    height: 60, // pixels
+    preset: 'bottom-right'
+};
+
 // Helper function to escape HTML and prevent XSS
 function escapeHtml(text) {
     const div = document.createElement('div');
@@ -13,6 +22,7 @@ function escapeHtml(text) {
 
 // DOM elements
 const uploadSection = document.getElementById('uploadSection');
+const configSection = document.getElementById('configSection');
 const processingSection = document.getElementById('processingSection');
 const previewSection = document.getElementById('previewSection');
 const dropZone = document.getElementById('dropZone');
@@ -29,6 +39,21 @@ const originalVideo = document.getElementById('originalVideo');
 const processedVideo = document.getElementById('processedVideo');
 const urlInput = document.getElementById('urlInput');
 const downloadUrlBtn = document.getElementById('downloadUrlBtn');
+
+// Configuration elements
+const configPreview = document.getElementById('configPreview');
+const watermarkOverlay = document.getElementById('watermarkOverlay');
+const watermarkXSlider = document.getElementById('watermarkX');
+const watermarkYSlider = document.getElementById('watermarkY');
+const watermarkWidthSlider = document.getElementById('watermarkWidth');
+const watermarkHeightSlider = document.getElementById('watermarkHeight');
+const watermarkXValue = document.getElementById('watermarkXValue');
+const watermarkYValue = document.getElementById('watermarkYValue');
+const watermarkWidthValue = document.getElementById('watermarkWidthValue');
+const watermarkHeightValue = document.getElementById('watermarkHeightValue');
+const startProcessingBtn = document.getElementById('startProcessingBtn');
+const configCancelBtn = document.getElementById('configCancelBtn');
+const presetButtons = document.querySelectorAll('.preset-btn');
 
 // Initialize FFmpeg
 async function loadFFmpeg() {
@@ -79,6 +104,45 @@ cancelBtn.addEventListener('click', cancelProcessing);
 downloadBtn.addEventListener('click', downloadProcessedVideo);
 newVideoBtn.addEventListener('click', resetToUpload);
 downloadUrlBtn.addEventListener('click', handleUrlDownload);
+
+// Configuration event listeners
+startProcessingBtn.addEventListener('click', startProcessing);
+configCancelBtn.addEventListener('click', resetToUpload);
+
+watermarkXSlider.addEventListener('input', (e) => {
+    watermarkConfig.x = parseInt(e.target.value);
+    watermarkXValue.textContent = `${watermarkConfig.x}%`;
+    updateWatermarkOverlay();
+});
+
+watermarkYSlider.addEventListener('input', (e) => {
+    watermarkConfig.y = parseInt(e.target.value);
+    watermarkYValue.textContent = `${watermarkConfig.y}%`;
+    updateWatermarkOverlay();
+});
+
+watermarkWidthSlider.addEventListener('input', (e) => {
+    watermarkConfig.width = parseInt(e.target.value);
+    watermarkWidthValue.textContent = `${watermarkConfig.width}px`;
+    updateWatermarkOverlay();
+});
+
+watermarkHeightSlider.addEventListener('input', (e) => {
+    watermarkConfig.height = parseInt(e.target.value);
+    watermarkHeightValue.textContent = `${watermarkConfig.height}px`;
+    updateWatermarkOverlay();
+});
+
+presetButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+        const preset = btn.getAttribute('data-preset');
+        applyPreset(preset);
+        
+        // Update active state
+        presetButtons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+    });
+});
 
 // File handling
 function handleFileSelect(e) {
@@ -133,12 +197,23 @@ function processFile(file) {
         <strong>Type:</strong> ${escapeHtml(file.type)}
     `;
     
-    // Show processing section
+    // Show configuration section
     uploadSection.classList.add('hidden');
-    processingSection.classList.remove('hidden');
+    configSection.classList.remove('hidden');
     
-    // Start processing
-    startProcessing();
+    // Load video in config preview
+    const videoURL = URL.createObjectURL(file);
+    configPreview.src = videoURL;
+    configPreview.onloadedmetadata = () => {
+        updateWatermarkOverlay();
+    };
+    
+    // Set default preset as active
+    presetButtons.forEach(btn => {
+        if (btn.getAttribute('data-preset') === watermarkConfig.preset) {
+            btn.classList.add('active');
+        }
+    });
 }
 
 async function handleUrlDownload() {
@@ -352,8 +427,66 @@ function extractVideoUrl(html, videoId) {
     return null;
 }
 
+// Watermark configuration functions
+function applyPreset(preset) {
+    watermarkConfig.preset = preset;
+    
+    switch(preset) {
+        case 'bottom-right':
+            watermarkConfig.x = 82;
+            watermarkConfig.y = 88;
+            break;
+        case 'bottom-left':
+            watermarkConfig.x = 2;
+            watermarkConfig.y = 88;
+            break;
+        case 'top-right':
+            watermarkConfig.x = 82;
+            watermarkConfig.y = 2;
+            break;
+        case 'top-left':
+            watermarkConfig.x = 2;
+            watermarkConfig.y = 2;
+            break;
+    }
+    
+    // Update sliders
+    watermarkXSlider.value = watermarkConfig.x;
+    watermarkYSlider.value = watermarkConfig.y;
+    watermarkXValue.textContent = `${watermarkConfig.x}%`;
+    watermarkYValue.textContent = `${watermarkConfig.y}%`;
+    
+    updateWatermarkOverlay();
+}
+
+function updateWatermarkOverlay() {
+    if (!configPreview.videoWidth) return;
+    
+    const videoWidth = configPreview.offsetWidth;
+    const videoHeight = configPreview.offsetHeight;
+    
+    // Calculate position in pixels
+    const xPixels = (watermarkConfig.x / 100) * videoWidth;
+    const yPixels = (watermarkConfig.y / 100) * videoHeight;
+    
+    // Scale the watermark size to the preview (proportionally)
+    const scale = videoWidth / configPreview.videoWidth;
+    const scaledWidth = watermarkConfig.width * scale;
+    const scaledHeight = watermarkConfig.height * scale;
+    
+    // Update overlay position and size
+    watermarkOverlay.style.left = `${xPixels}px`;
+    watermarkOverlay.style.top = `${yPixels}px`;
+    watermarkOverlay.style.width = `${scaledWidth}px`;
+    watermarkOverlay.style.height = `${scaledHeight}px`;
+}
+
 async function startProcessing() {
     isProcessing = true;
+    
+    // Hide config section, show processing section
+    configSection.classList.add('hidden');
+    processingSection.classList.remove('hidden');
     
     try {
         // Step 1: Load video
@@ -418,21 +551,32 @@ async function removeWatermark(file) {
         // Write input file to FFmpeg virtual filesystem
         await ffmpeg.writeFile('input.mp4', await fetchFile(file));
         
-        // Sora watermark is typically in the bottom-right corner
-        // We'll use a delogo filter to remove it
-        // This is a simplified approach - in production, you'd use more sophisticated methods
+        // Calculate FFmpeg filter parameters from watermark config
+        // Convert percentage-based positions to pixel-based positions
+        // x and y are calculated from the video dimensions
+        // watermarkConfig.x and watermarkConfig.y are percentages (0-100)
         
-        // Apply video processing to remove watermark
-        // Using a combination of filters:
-        // 1. delogo: removes logo/watermark from a specific area
-        // 2. crop and overlay: for more precise removal
+        // For FFmpeg delogo filter:
+        // x: horizontal position (can use expressions like iw-210 for right side)
+        // y: vertical position (can use expressions like ih-70 for bottom)
+        // w: width of watermark area
+        // h: height of watermark area
         
-        // For demonstration, we'll apply a filter that targets the typical Sora watermark location
-        // Sora watermarks are usually 200x60 pixels in the bottom-right area
+        // Convert percentage to FFmpeg expression
+        const xExpr = watermarkConfig.x <= 50 
+            ? Math.round(watermarkConfig.x * 10) // Left side: use absolute value (0.1*iw per percent)
+            : `iw-${Math.round((100 - watermarkConfig.x) * 10) + watermarkConfig.width}`; // Right side: from right edge
+        
+        const yExpr = watermarkConfig.y <= 50
+            ? Math.round(watermarkConfig.y * 10) // Top side: use absolute value
+            : `ih-${Math.round((100 - watermarkConfig.y) * 10) + watermarkConfig.height}`; // Bottom side: from bottom edge
+        
+        // Build delogo filter string
+        const delogoFilter = `delogo=x=${xExpr}:y=${yExpr}:w=${watermarkConfig.width}:h=${watermarkConfig.height}:show=0`;
         
         await ffmpeg.exec([
             '-i', 'input.mp4',
-            '-vf', 'delogo=x=iw-210:y=ih-70:w=200:h=60:show=0',
+            '-vf', delogoFilter,
             '-c:v', 'libx264',
             '-preset', 'ultrafast',
             '-crf', '23',
@@ -510,6 +654,10 @@ function resetToUpload() {
         URL.revokeObjectURL(processedVideo.src);
         processedVideo.src = '';
     }
+    if (configPreview.src) {
+        URL.revokeObjectURL(configPreview.src);
+        configPreview.src = '';
+    }
     
     currentFile = null;
     processedVideoBlob = null;
@@ -530,7 +678,28 @@ function resetToUpload() {
         updateStep(i, null);
     }
     
+    // Reset watermark config to default
+    watermarkConfig = {
+        x: 82,
+        y: 88,
+        width: 200,
+        height: 60,
+        preset: 'bottom-right'
+    };
+    watermarkXSlider.value = 82;
+    watermarkYSlider.value = 88;
+    watermarkWidthSlider.value = 200;
+    watermarkHeightSlider.value = 60;
+    watermarkXValue.textContent = '82%';
+    watermarkYValue.textContent = '88%';
+    watermarkWidthValue.textContent = '200px';
+    watermarkHeightValue.textContent = '60px';
+    
+    // Reset preset buttons
+    presetButtons.forEach(btn => btn.classList.remove('active'));
+    
     // Show upload section
+    configSection.classList.add('hidden');
     processingSection.classList.add('hidden');
     previewSection.classList.add('hidden');
     uploadSection.classList.remove('hidden');

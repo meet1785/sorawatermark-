@@ -44,6 +44,80 @@
                 </div>
             </section>
 
+            <!-- Watermark Configuration Section -->
+            <section id="configSection" class="section hidden">
+                <div class="config-card">
+                    <h2>Configure Watermark Position</h2>
+                    <p class="config-subtitle">Adjust the watermark detection area to match your video</p>
+                    
+                    <div class="config-content">
+                        <div class="preview-area">
+                            <video id="configPreview" controls></video>
+                            <div class="watermark-overlay" id="watermarkOverlay"></div>
+                        </div>
+                        
+                        <div class="config-controls">
+                            <div class="preset-buttons">
+                                <h3>Quick Presets</h3>
+                                <div class="preset-grid">
+                                    <button class="preset-btn" data-preset="bottom-right">
+                                        <span class="preset-icon">↘️</span>
+                                        <span>Bottom Right</span>
+                                    </button>
+                                    <button class="preset-btn" data-preset="bottom-left">
+                                        <span class="preset-icon">↙️</span>
+                                        <span>Bottom Left</span>
+                                    </button>
+                                    <button class="preset-btn" data-preset="top-right">
+                                        <span class="preset-icon">↗️</span>
+                                        <span>Top Right</span>
+                                    </button>
+                                    <button class="preset-btn" data-preset="top-left">
+                                        <span class="preset-icon">↖️</span>
+                                        <span>Top Left</span>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="manual-controls">
+                                <h3>Fine Tune Position</h3>
+                                
+                                <div class="control-group">
+                                    <label for="watermarkX">Horizontal Position</label>
+                                    <input type="range" id="watermarkX" min="0" max="100" value="82" class="slider">
+                                    <span class="control-value" id="watermarkXValue">82%</span>
+                                </div>
+                                
+                                <div class="control-group">
+                                    <label for="watermarkY">Vertical Position</label>
+                                    <input type="range" id="watermarkY" min="0" max="100" value="88" class="slider">
+                                    <span class="control-value" id="watermarkYValue">88%</span>
+                                </div>
+                                
+                                <div class="control-group">
+                                    <label for="watermarkWidth">Width</label>
+                                    <input type="range" id="watermarkWidth" min="50" max="400" value="200" class="slider">
+                                    <span class="control-value" id="watermarkWidthValue">200px</span>
+                                </div>
+                                
+                                <div class="control-group">
+                                    <label for="watermarkHeight">Height</label>
+                                    <input type="range" id="watermarkHeight" min="30" max="200" value="60" class="slider">
+                                    <span class="control-value" id="watermarkHeightValue">60px</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="config-actions">
+                        <button class="btn btn-secondary" id="configCancelBtn">Cancel</button>
+                        <button class="btn btn-primary btn-large" id="startProcessingBtn">
+                            Start Processing
+                        </button>
+                    </div>
+                </div>
+            </section>
+
             <!-- Processing Section -->
             <section id="processingSection" class="section hidden">
                 <div class="processing-card">
