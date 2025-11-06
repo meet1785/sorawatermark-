@@ -13,6 +13,9 @@ const DEFAULT_WATERMARK_CONFIG = {
     preset: 'bottom-right'
 };
 
+// FFmpeg expression precision (decimal places for percentage values)
+const FFMPEG_EXPRESSION_PRECISION = 3;
+
 // Watermark configuration state
 let watermarkConfig = { ...DEFAULT_WATERMARK_CONFIG };
 
@@ -469,6 +472,9 @@ function updateWatermarkOverlay() {
     const videoWidth = configPreview.offsetWidth;
     const videoHeight = configPreview.offsetHeight;
     
+    // Guard against video element with no rendered dimensions
+    if (!videoWidth || videoWidth <= 0) return;
+    
     // Calculate position in pixels
     const xPixels = (watermarkConfig.x / 100) * videoWidth;
     const yPixels = (watermarkConfig.y / 100) * videoHeight;
@@ -567,8 +573,8 @@ async function removeWatermark(file) {
         
         // Convert percentage to FFmpeg expression that scales with video dimensions
         // The percentage represents where the watermark STARTS from the left/top edge
-        const xExpr = `iw*${(watermarkConfig.x / 100).toFixed(3)}`;
-        const yExpr = `ih*${(watermarkConfig.y / 100).toFixed(3)}`;
+        const xExpr = `iw*${(watermarkConfig.x / 100).toFixed(FFMPEG_EXPRESSION_PRECISION)}`;
+        const yExpr = `ih*${(watermarkConfig.y / 100).toFixed(FFMPEG_EXPRESSION_PRECISION)}`;
         
         // Build delogo filter string
         const delogoFilter = `delogo=x=${xExpr}:y=${yExpr}:w=${watermarkConfig.width}:h=${watermarkConfig.height}:show=0`;
