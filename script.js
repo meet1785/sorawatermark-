@@ -463,7 +463,8 @@ function applyPreset(preset) {
 }
 
 function updateWatermarkOverlay() {
-    if (!configPreview.videoWidth) return;
+    // Guard against unloaded video metadata
+    if (!configPreview.videoWidth || configPreview.videoWidth <= 0) return;
     
     const videoWidth = configPreview.offsetWidth;
     const videoHeight = configPreview.offsetHeight;
@@ -473,8 +474,7 @@ function updateWatermarkOverlay() {
     const yPixels = (watermarkConfig.y / 100) * videoHeight;
     
     // Scale the watermark size to the preview (proportionally)
-    // Guard against division by zero
-    const scale = configPreview.videoWidth > 0 ? videoWidth / configPreview.videoWidth : 1;
+    const scale = videoWidth / configPreview.videoWidth;
     const scaledWidth = watermarkConfig.width * scale;
     const scaledHeight = watermarkConfig.height * scale;
     
