@@ -468,12 +468,13 @@ function applyPreset(preset) {
 function updateWatermarkOverlay() {
     // Guard against unloaded video metadata
     if (!configPreview.videoWidth || configPreview.videoWidth <= 0) return;
+    if (!configPreview.videoHeight || configPreview.videoHeight <= 0) return;
     
     const videoWidth = configPreview.offsetWidth;
     const videoHeight = configPreview.offsetHeight;
     
     // Guard against video element with no rendered dimensions
-    if (!videoWidth || videoWidth <= 0) return;
+    if (!videoWidth || videoWidth <= 0 || !videoHeight || videoHeight <= 0) return;
     
     // Calculate position in pixels
     const xPixels = (watermarkConfig.x / 100) * videoWidth;
