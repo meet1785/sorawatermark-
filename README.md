@@ -12,6 +12,7 @@ A powerful, free, and privacy-focused web tool for removing watermarks from Sora
 - **💎 High Quality**: Maintains original video quality while removing watermarks
 - **💰 Completely Free**: No hidden fees, subscriptions, or limitations
 - **🎯 Custom Watermark Position**: Configure watermark location and size with presets or manual controls
+- **⚙️ Quality Presets**: Choose between Fast, Balanced, or High Quality processing modes
 - **📱 Real-time Progress**: Live progress indicators showing processing status
 - **👁️ In-browser Preview**: Compare original and cleaned videos side-by-side with live watermark overlay
 - **⬇️ One-click Download**: Download your processed MP4 file instantly
@@ -84,16 +85,23 @@ npx http-server -p 8000
      - Height (30-200px)
    - See the watermark area highlighted on your video in real-time
 
-3. **Processing**:
+3. **Select Output Quality**:
+   - Choose your preferred quality preset:
+     - **Fast**: Lower quality (CRF 28), faster processing - best for quick previews
+     - **Balanced**: Good quality (CRF 23), moderate speed - recommended for most users
+     - **High Quality**: Best quality (CRF 18), slower processing - best for final output
+   - Trade-off between processing speed and video quality
+
+4. **Processing**:
    - Click "Start Processing" to begin
    - Watch real-time progress as the tool analyzes and removes the watermark
    - Four-step process: Load → Analyze → Remove → Finalize
 
-4. **Preview**:
+5. **Preview**:
    - Compare original and cleaned videos side-by-side
    - Verify watermark removal quality
 
-5. **Download**:
+6. **Download**:
    - Click "Download Cleaned Video" to save your watermark-free video
    - Video is saved as MP4 format
 
@@ -228,10 +236,10 @@ Contributions are welcome! Here's how you can help:
 
 ## 📝 Roadmap
 
-- [x] Support for custom watermark positions - **NEW!** ✨
+- [x] Support for custom watermark positions - ✨
+- [x] Video quality presets (fast/balanced/high quality) - **NEW!** ✨
 - [ ] Batch processing multiple videos
 - [ ] Advanced watermark detection using AI
-- [ ] Video quality presets (fast/balanced/quality)
 - [ ] Progress persistence (resume interrupted processing)
 - [ ] Mobile app version
 

@@ -13,11 +13,33 @@ const DEFAULT_WATERMARK_CONFIG = {
     preset: 'bottom-right'
 };
 
+// Quality preset configuration
+const QUALITY_PRESETS = {
+    fast: {
+        crf: 28,
+        preset: 'ultrafast',
+        description: 'Fast processing with good quality'
+    },
+    balanced: {
+        crf: 23,
+        preset: 'ultrafast',
+        description: 'Balanced quality and speed'
+    },
+    high: {
+        crf: 18,
+        preset: 'fast',
+        description: 'Best quality with slower processing'
+    }
+};
+
 // FFmpeg expression precision (decimal places for percentage values)
 const FFMPEG_EXPRESSION_PRECISION = 3;
 
 // Watermark configuration state
 let watermarkConfig = { ...DEFAULT_WATERMARK_CONFIG };
+
+// Quality configuration state
+let qualityPreset = 'balanced';
 
 // Helper function to escape HTML and prevent XSS
 function escapeHtml(text) {
@@ -60,6 +82,7 @@ const watermarkHeightValue = document.getElementById('watermarkHeightValue');
 const startProcessingBtn = document.getElementById('startProcessingBtn');
 const configCancelBtn = document.getElementById('configCancelBtn');
 const presetButtons = document.querySelectorAll('.preset-btn');
+const qualityPresetButtons = document.querySelectorAll('.quality-preset-btn');
 
 // Initialize FFmpeg
 async function loadFFmpeg() {
@@ -146,6 +169,17 @@ presetButtons.forEach(btn => {
         
         // Update active state
         presetButtons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+    });
+});
+
+qualityPresetButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+        const quality = btn.getAttribute('data-quality');
+        qualityPreset = quality;
+        
+        // Update active state
+        qualityPresetButtons.forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
     });
 });
@@ -580,12 +614,15 @@ async function removeWatermark(file) {
         // Build delogo filter string
         const delogoFilter = `delogo=x=${xExpr}:y=${yExpr}:w=${watermarkConfig.width}:h=${watermarkConfig.height}:show=0`;
         
+        // Get quality settings from selected preset
+        const qualitySettings = QUALITY_PRESETS[qualityPreset];
+        
         await ffmpeg.exec([
             '-i', 'input.mp4',
             '-vf', delogoFilter,
             '-c:v', 'libx264',
-            '-preset', 'ultrafast',
-            '-crf', '23',
+            '-preset', qualitySettings.preset,
+            '-crf', qualitySettings.crf.toString(),
             '-c:a', 'copy',
             'output.mp4'
         ]);
@@ -697,6 +734,16 @@ function resetToUpload() {
     
     // Reset preset buttons
     presetButtons.forEach(btn => btn.classList.remove('active'));
+    
+    // Reset quality preset to balanced
+    qualityPreset = 'balanced';
+    qualityPresetButtons.forEach(btn => {
+        if (btn.getAttribute('data-quality') === 'balanced') {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
     
     // Show upload section
     configSection.classList.add('hidden');

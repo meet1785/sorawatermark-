@@ -596,6 +596,73 @@ main {
     color: var(--primary-color);
 }
 
+/* Quality Controls */
+.quality-controls {
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.quality-controls h3 {
+    font-size: 1.125rem;
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+}
+
+.quality-subtitle {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+}
+
+.quality-preset-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+}
+
+.quality-preset-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+    padding: 1rem;
+    background: white;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: left;
+}
+
+.quality-preset-btn:hover {
+    border-color: var(--primary-color);
+    background: #f0f3ff;
+    transform: translateX(4px);
+}
+
+.quality-preset-btn.active {
+    border-color: var(--primary-color);
+    background: #f0f3ff;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.quality-icon {
+    font-size: 1.5rem;
+    margin-bottom: 0.25rem;
+}
+
+.quality-name {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.quality-desc {
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+}
+
 .config-actions {
     display: flex;
     justify-content: center;
