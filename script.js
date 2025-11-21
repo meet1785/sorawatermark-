@@ -709,9 +709,208 @@ function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+// Keyboard shortcuts
+const keyboardHelpModal = document.getElementById('keyboardHelpModal');
+const closeModalBtn = document.getElementById('closeModal');
+
+// Show/hide keyboard shortcuts modal
+function showKeyboardHelp() {
+    keyboardHelpModal.classList.remove('hidden');
+    // Focus on close button for accessibility
+    closeModalBtn.focus();
+}
+
+function hideKeyboardHelp() {
+    keyboardHelpModal.classList.add('hidden');
+}
+
+// Close modal when clicking close button
+closeModalBtn.addEventListener('click', hideKeyboardHelp);
+
+// Close modal when clicking outside of modal content
+keyboardHelpModal.addEventListener('click', (e) => {
+    if (e.target === keyboardHelpModal) {
+        hideKeyboardHelp();
+    }
+});
+
+// Global keyboard shortcuts
+document.addEventListener('keydown', (e) => {
+    // Show keyboard help: ? or F1
+    if ((e.key === '?' && !e.ctrlKey && !e.metaKey) || e.key === 'F1') {
+        e.preventDefault();
+        showKeyboardHelp();
+        return;
+    }
+    
+    // Close modal: Escape
+    if (e.key === 'Escape' && !keyboardHelpModal.classList.contains('hidden')) {
+        e.preventDefault();
+        hideKeyboardHelp();
+        return;
+    }
+    
+    // Prevent shortcuts when typing in inputs
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+        return;
+    }
+    
+    // Open file picker: Ctrl/Cmd + O
+    if ((e.ctrlKey || e.metaKey) && e.key === 'o') {
+        e.preventDefault();
+        if (!uploadSection.classList.contains('hidden')) {
+            fileInput.click();
+        }
+        return;
+    }
+    
+    // Download processed video: Ctrl/Cmd + S
+    if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        if (!previewSection.classList.contains('hidden') && processedVideoBlob) {
+            downloadProcessedVideo();
+        }
+        return;
+    }
+    
+    // Cancel/Go back: Escape
+    if (e.key === 'Escape') {
+        e.preventDefault();
+        if (!processingSection.classList.contains('hidden')) {
+            cancelProcessing();
+        } else if (!configSection.classList.contains('hidden')) {
+            resetToUpload();
+        } else if (!previewSection.classList.contains('hidden')) {
+            resetToUpload();
+        }
+        return;
+    }
+    
+    // Configuration section shortcuts
+    if (!configSection.classList.contains('hidden')) {
+        // Start processing: Enter
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            startProcessing();
+            return;
+        }
+        
+        // Preset selection: 1-4
+        if (e.key >= '1' && e.key <= '4' && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
+            e.preventDefault();
+            const presets = ['bottom-right', 'bottom-left', 'top-right', 'top-left'];
+            const preset = presets[parseInt(e.key) - 1];
+            applyPreset(preset);
+            // Update active state on buttons
+            presetButtons.forEach((btn, index) => {
+                if (index === parseInt(e.key) - 1) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+            return;
+        }
+        
+        // Arrow keys for fine-tuning
+        const step = e.shiftKey ? 5 : 1; // Larger steps with Shift
+        
+        if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            if (e.shiftKey) {
+                // Adjust height
+                watermarkConfig.height = Math.min(200, watermarkConfig.height + step);
+                watermarkHeightSlider.value = watermarkConfig.height;
+                watermarkHeightValue.textContent = `${watermarkConfig.height}px`;
+            } else {
+                // Move up (decrease Y)
+                watermarkConfig.y = Math.max(0, watermarkConfig.y - step);
+                watermarkYSlider.value = watermarkConfig.y;
+                watermarkYValue.textContent = `${watermarkConfig.y}%`;
+            }
+            updateWatermarkOverlay();
+            return;
+        }
+        
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            if (e.shiftKey) {
+                // Adjust height
+                watermarkConfig.height = Math.max(30, watermarkConfig.height - step);
+                watermarkHeightSlider.value = watermarkConfig.height;
+                watermarkHeightValue.textContent = `${watermarkConfig.height}px`;
+            } else {
+                // Move down (increase Y)
+                watermarkConfig.y = Math.min(100, watermarkConfig.y + step);
+                watermarkYSlider.value = watermarkConfig.y;
+                watermarkYValue.textContent = `${watermarkConfig.y}%`;
+            }
+            updateWatermarkOverlay();
+            return;
+        }
+        
+        if (e.key === 'ArrowLeft') {
+            e.preventDefault();
+            if (e.shiftKey) {
+                // Adjust width
+                watermarkConfig.width = Math.max(50, watermarkConfig.width - step);
+                watermarkWidthSlider.value = watermarkConfig.width;
+                watermarkWidthValue.textContent = `${watermarkConfig.width}px`;
+            } else {
+                // Move left (decrease X)
+                watermarkConfig.x = Math.max(0, watermarkConfig.x - step);
+                watermarkXSlider.value = watermarkConfig.x;
+                watermarkXValue.textContent = `${watermarkConfig.x}%`;
+            }
+            updateWatermarkOverlay();
+            return;
+        }
+        
+        if (e.key === 'ArrowRight') {
+            e.preventDefault();
+            if (e.shiftKey) {
+                // Adjust width
+                watermarkConfig.width = Math.min(400, watermarkConfig.width + step);
+                watermarkWidthSlider.value = watermarkConfig.width;
+                watermarkWidthValue.textContent = `${watermarkConfig.width}px`;
+            } else {
+                // Move right (increase X)
+                watermarkConfig.x = Math.min(100, watermarkConfig.x + step);
+                watermarkXSlider.value = watermarkConfig.x;
+                watermarkXValue.textContent = `${watermarkConfig.x}%`;
+            }
+            updateWatermarkOverlay();
+            return;
+        }
+    }
+    
+    // Preview section shortcuts
+    if (!previewSection.classList.contains('hidden')) {
+        // Process another video: N
+        if (e.key === 'n' || e.key === 'N') {
+            e.preventDefault();
+            resetToUpload();
+            return;
+        }
+        
+        // Play/Pause video: Space
+        if (e.key === ' ') {
+            e.preventDefault();
+            // Toggle play/pause on the processed video
+            if (processedVideo.paused) {
+                processedVideo.play();
+            } else {
+                processedVideo.pause();
+            }
+            return;
+        }
+    }
+});
+
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
     console.log('Sora Watermark Remover initialized');
+    console.log('Press ? or F1 to view keyboard shortcuts');
     
     // Preload FFmpeg in the background
     setTimeout(() => {

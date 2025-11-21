@@ -246,7 +246,77 @@
         <footer>
             <p>&copy; 2024 Sora Watermark Remover. All rights reserved.</p>
             <p>This tool is for educational and personal use only.</p>
+            <p class="keyboard-hint">Press <kbd>?</kbd> or <kbd>F1</kbd> for keyboard shortcuts</p>
         </footer>
+    </div>
+
+    <!-- Keyboard Shortcuts Help Modal -->
+    <div id="keyboardHelpModal" class="modal hidden" role="dialog" aria-labelledby="modalTitle" aria-modal="true">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">⌨️ Keyboard Shortcuts</h2>
+                <button class="modal-close" id="closeModal" aria-label="Close shortcuts help">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="shortcuts-grid">
+                    <div class="shortcut-section">
+                        <h3>General</h3>
+                        <div class="shortcut-item">
+                            <kbd>?</kbd> or <kbd>F1</kbd>
+                            <span>Show this help</span>
+                        </div>
+                        <div class="shortcut-item">
+                            <kbd>Ctrl</kbd> + <kbd>O</kbd>
+                            <span>Open file picker</span>
+                        </div>
+                        <div class="shortcut-item">
+                            <kbd>Esc</kbd>
+                            <span>Cancel / Go back</span>
+                        </div>
+                    </div>
+                    
+                    <div class="shortcut-section">
+                        <h3>Configuration</h3>
+                        <div class="shortcut-item">
+                            <kbd>Enter</kbd>
+                            <span>Start processing</span>
+                        </div>
+                        <div class="shortcut-item">
+                            <kbd>1</kbd> - <kbd>4</kbd>
+                            <span>Select preset (1: Bottom-right, 2: Bottom-left, 3: Top-right, 4: Top-left)</span>
+                        </div>
+                        <div class="shortcut-item">
+                            <kbd>↑</kbd> <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd>
+                            <span>Fine-tune watermark position</span>
+                        </div>
+                        <div class="shortcut-item">
+                            <kbd>Shift</kbd> + <kbd>↑</kbd> <kbd>↓</kbd>
+                            <span>Adjust watermark height</span>
+                        </div>
+                        <div class="shortcut-item">
+                            <kbd>Shift</kbd> + <kbd>←</kbd> <kbd>→</kbd>
+                            <span>Adjust watermark width</span>
+                        </div>
+                    </div>
+                    
+                    <div class="shortcut-section">
+                        <h3>Preview & Download</h3>
+                        <div class="shortcut-item">
+                            <kbd>Ctrl</kbd> + <kbd>S</kbd>
+                            <span>Download processed video</span>
+                        </div>
+                        <div class="shortcut-item">
+                            <kbd>N</kbd>
+                            <span>Process another video</span>
+                        </div>
+                        <div class="shortcut-item">
+                            <kbd>Space</kbd>
+                            <span>Play/Pause video preview</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.6/dist/umd/ffmpeg.min.js"></script>

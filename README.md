@@ -17,6 +17,7 @@ A powerful, free, and privacy-focused web tool for removing watermarks from Sora
 - **⬇️ One-click Download**: Download your processed MP4 file instantly
 - **🎯 Easy to Use**: Simple drag-and-drop interface or URL input
 - **🔗 URL Support**: Attempt to download videos directly from Sora ChatGPT URLs (when possible)
+- **⌨️ Keyboard Shortcuts**: Full keyboard navigation support for power users - **NEW!** ✨
 
 ## 🚀 Quick Start
 
@@ -96,6 +97,31 @@ npx http-server -p 8000
 5. **Download**:
    - Click "Download Cleaned Video" to save your watermark-free video
    - Video is saved as MP4 format
+
+## ⌨️ Keyboard Shortcuts
+
+Boost your productivity with comprehensive keyboard shortcuts! Press `?` or `F1` anytime to view the full shortcuts help.
+
+### General Shortcuts
+- **`?` or `F1`**: Show keyboard shortcuts help
+- **`Ctrl/Cmd + O`**: Open file picker
+- **`Esc`**: Cancel current operation / Go back to upload screen
+
+### Configuration Screen
+- **`Enter`**: Start processing the video
+- **`1` - `4`**: Quick preset selection
+  - `1`: Bottom-right (default)
+  - `2`: Bottom-left
+  - `3`: Top-right
+  - `4`: Top-left
+- **Arrow Keys** (`↑` `↓` `←` `→`): Fine-tune watermark position (1% steps)
+- **`Shift + ↑` / `Shift + ↓`**: Adjust watermark height (5px steps)
+- **`Shift + ←` / `Shift + →`**: Adjust watermark width (5px steps)
+
+### Preview & Download Screen
+- **`Ctrl/Cmd + S`**: Download processed video
+- **`N`**: Process another video
+- **`Space`**: Play/Pause video preview
 
 ## 🛠️ Technical Details
 
@@ -228,7 +254,8 @@ Contributions are welcome! Here's how you can help:
 
 ## 📝 Roadmap
 
-- [x] Support for custom watermark positions - **NEW!** ✨
+- [x] Support for custom watermark positions ✨
+- [x] Keyboard shortcuts for power users - **NEW!** ✨
 - [ ] Batch processing multiple videos
 - [ ] Advanced watermark detection using AI
 - [ ] Video quality presets (fast/balanced/quality)
