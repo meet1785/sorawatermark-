@@ -16,6 +16,10 @@ const DEFAULT_WATERMARK_CONFIG = {
 // FFmpeg expression precision (decimal places for percentage values)
 const FFMPEG_EXPRESSION_PRECISION = 3;
 
+// Keyboard shortcuts adjustment constants
+const FINE_ADJUSTMENT_STEP = 1;
+const COARSE_ADJUSTMENT_STEP = 5;
+
 // Watermark configuration state
 let watermarkConfig = { ...DEFAULT_WATERMARK_CONFIG };
 
@@ -434,6 +438,16 @@ function extractVideoUrl(html, videoId) {
 }
 
 // Watermark configuration functions
+function updatePresetButtonState(activeIndex) {
+    presetButtons.forEach((btn, index) => {
+        if (index === activeIndex) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+}
+
 function applyPreset(preset) {
     watermarkConfig.preset = preset;
     
@@ -750,8 +764,8 @@ document.addEventListener('keydown', (e) => {
         return;
     }
     
-    // Prevent shortcuts when typing in inputs
-    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+    // Prevent shortcuts when typing in inputs or editable elements
+    if (e.target.matches('input, textarea, [contenteditable]')) {
         return;
     }
     
@@ -796,24 +810,19 @@ document.addEventListener('keydown', (e) => {
         }
         
         // Preset selection: 1-4
-        if (e.key >= '1' && e.key <= '4' && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
+        const presets = ['bottom-right', 'bottom-left', 'top-right', 'top-left'];
+        if (e.key >= '1' && e.key <= String(presets.length) && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
             e.preventDefault();
-            const presets = ['bottom-right', 'bottom-left', 'top-right', 'top-left'];
-            const preset = presets[parseInt(e.key) - 1];
+            const presetIndex = parseInt(e.key) - 1;
+            const preset = presets[presetIndex];
             applyPreset(preset);
-            // Update active state on buttons
-            presetButtons.forEach((btn, index) => {
-                if (index === parseInt(e.key) - 1) {
-                    btn.classList.add('active');
-                } else {
-                    btn.classList.remove('active');
-                }
-            });
+            // Update active state on buttons using helper function
+            updatePresetButtonState(presetIndex);
             return;
         }
         
         // Arrow keys for fine-tuning
-        const step = e.shiftKey ? 5 : 1; // Larger steps with Shift
+        const step = e.shiftKey ? COARSE_ADJUSTMENT_STEP : FINE_ADJUSTMENT_STEP;
         
         if (e.key === 'ArrowUp') {
             e.preventDefault();
